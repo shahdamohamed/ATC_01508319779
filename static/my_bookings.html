@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Bookings - Events Book App</title>
+  <style>
+    body { font-family: sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #007bff;
+      padding: 16px 32px;
+      border-radius: 0 0 10px 10px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .navbar-title {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .navbar-buttons button {
+      background: #fff;
+      color: #007bff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 5px;
+      margin-left: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s;
+    }
+    .navbar-buttons button:hover {
+      background: #0056b3;
+      color: #fff;
+    }
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+    h2 { text-align: center; margin-top: 0; }
+    .booking-list {
+      list-style: none;
+      padding: 0;
+    }
+    .booking-item {
+      border-bottom: 1px solid #eee;
+      padding: 18px 0;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .booking-item:last-child {
+      border-bottom: none;
+    }
+    .booking-img {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #eee;
+    }
+    .booking-info h3 {
+      margin: 0 0 6px 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .booking-info p {
+      margin: 0;
+      color: #555;
+      font-size: 0.97rem;
+    }
+    .no-bookings {
+      text-align: center;
+      color: #888;
+      margin-top: 40px;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <span class="navbar-title">Events Book App</span>
+    <div class="navbar-buttons" id="navbar-buttons"></div>
+  </div>
+  <div class="container">
+    <h2>My Booked Events</h2>
+    <ul class="booking-list" id="booking-list"></ul>
+    <div class="no-bookings" id="no-bookings" style="display:none;">You have no bookings yet.</div>
+  </div>
+  <script>
+    const token = localStorage.getItem('access_token');
+    function renderNavbarButtons() {
+      const navbarButtons = document.getElementById('navbar-buttons');
+      navbarButtons.innerHTML = '';
+      if (token) {
+        const logoutBtn = document.createElement('button');
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.onclick = async function() {
+          try {
+            await fetch('http://localhost:8000/api/api/token/logout/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+          } catch (e) {}
+          localStorage.removeItem('access_token');
+          window.location.href = 'login.html';
+        };
+        navbarButtons.appendChild(logoutBtn);
+      } else {
+        const loginBtn = document.createElement('button');
+        loginBtn.textContent = 'Login';
+        loginBtn.onclick = function() {
+          window.location.href = 'login.html';
+        };
+        const registerBtn = document.createElement('button');
+        registerBtn.textContent = 'Register';
+        registerBtn.onclick = function() {
+          window.location.href = 'register.html';
+        };
+        navbarButtons.appendChild(loginBtn);
+        navbarButtons.appendChild(registerBtn);
+      }
+    }
+    renderNavbarButtons();
+
+    async function loadBookings() {
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      try {
+        const res = await fetch('http://localhost:8000/api/bookings/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const bookings = await res.json();
+        const list = document.getElementById('booking-list');
+        const noBookings = document.getElementById('no-bookings');
+        list.innerHTML = '';
+        if (!bookings.length) {
+          noBookings.style.display = 'block';
+          return;
+        }
+        noBookings.style.display = 'none';
+        bookings.forEach(b => {
+          const event = b.event || b;
+          const li = document.createElement('li');
+          li.className = 'booking-item';
+          li.innerHTML = `
+            <img class="booking-img" src="${event.image || 'https://via.placeholder.com/120x80?text=No+Image'}" alt="${event.name}">
+            <div class="booking-info">
+              <h3>${event.name}</h3>
+              <p>${event.date ? 'Date: ' + event.date : ''}</p>
+              <p>${event.venue ? 'Venue: ' + event.venue : ''}</p>
+              <p>${event.price ? 'Price: ₹' + event.price : 'Free'}</p>
+            </div>
+          `;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        document.getElementById('booking-list').innerHTML = '<li class="no-bookings">Failed to load bookings.</li>';
+      }
+    }
+    loadBookings();
+  </script>
+</body>
+</html>
