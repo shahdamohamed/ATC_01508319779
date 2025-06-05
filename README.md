@@ -101,16 +101,3 @@ event_booking/
 🔗 [GitHub Profile](https://github.com/shahdamohamed)
 
 ---
-
-## 📌 Future Improvements
-
-- Add email confirmation on registration
-- Event filtering by date/location
-- Admin dashboard UI
-- Payment gateway integration
-
----
-
-## 📄 License
-
-This project is open-source and available under the [MIT License](LICENSE).

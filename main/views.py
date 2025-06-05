@@ -56,9 +56,3 @@ class RegisterAPIView(APIView):
             login(request, user)
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-def toggle_theme(request):
-    current = request.COOKIES.get('theme', 'light')
-    response = HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-    response.set_cookie('theme', 'dark' if current == 'light' else 'light')
-    return response
